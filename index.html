@@ -211,33 +211,99 @@
                         </div>
                     </div>
                     <div id="statsContainer5" class="d-none mt-3">
-                        <div class="row justify-content-center">
-                            <div class="col-md-10">
-                                <div class="card border-info">
-                                    <div class="card-header bg-info text-white">
-                                        <h3 class="h6 mb-0">Estadísticas del Portal Cuántico</h3>
+
+                        <div class="card border-info mb-3">
+                            <div class="card-header bg-info text-white">
+                                <h3 class="h6 mb-0">Estadisticas del Portal Cuantico</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-4"><strong>Temperatura</strong></div>
+                                    <div class="col-4"><strong>Humedad</strong></div>
+                                    <div class="col-4"><strong>Presion</strong></div>
+                                    <div class="col-4">Prom: <span id="avgTemp5"></span></div>
+                                    <div class="col-4">Prom: <span id="avgHum5"></span></div>
+                                    <div class="col-4">Prom: <span id="avgPres5"></span></div>
+                                    <div class="col-4">Mediana: <span id="medianTemp5"></span></div>
+                                    <div class="col-4">Max: <span id="maxHum5"></span></div>
+                                    <div class="col-4">Max: <span id="maxPres5"></span></div>
+                                    <div class="col-4">Std Dev: <span id="stdDevTemp5"></span></div>
+                                    <div class="col-4">Std Dev: <span id="stdDevHum5"></span></div>
+                                    <div class="col-4">Std Dev: <span id="stdDevPres5"></span></div>
+                                </div>
+                                <hr>
+                                <p><strong>Top 10 Temperaturas:</strong> <span id="topTemps5"></span></p>
+                                <p><strong>Top 10 Presiones:</strong> <span id="topPress5"></span></p>
+                                <p><strong>Registros Validos Procesados:</strong> <span id="validCount5"></span></p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header bg-secondary text-white">
+                                        <h4 class="h6 mb-0">Temperatura vs Humedad</h4>
                                     </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-4"><strong>Temperatura</strong></div>
-                                            <div class="col-4"><strong>Humedad</strong></div>
-                                            <div class="col-4"><strong>Presión</strong></div>
-                                            <div class="col-4">Prom: <span id="avgTemp5"></span></div>
-                                            <div class="col-4">Prom: <span id="avgHum5"></span></div>
-                                            <div class="col-4">Prom: <span id="avgPres5"></span></div>
-                                        </div>
-                                        <hr>
-                                        <p><strong>Top 10 Temperaturas:</strong> <span id="topTemps5"></span></p>
-                                        <p><strong>Top 10 Presiones:</strong> <span id="topPress5"></span></p>
-                                        <p><strong>Registros Válidos Procesados:</strong> <span id="validCount5"></span>
-                                        </p>
-                                        <button id="exportJsonBtn" class="btn btn-success mt-2">
-                                            <i class="bi bi-download"></i> Exportar JSON
-                                        </button>
+                                    <div class="card-body p-2 text-center">
+                                        <canvas id="scatterCanvas5" width="400" height="300" class="border rounded"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header bg-secondary text-white">
+                                        <h4 class="h6 mb-0">Distribucion de Temperatura</h4>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <canvas id="histogramCanvas5" width="400" height="300" class="border rounded"></canvas>
                                     </div>
                                 </div>
                             </div>
                         </div>
+
+                        <div class="card border-warning mb-3">
+                            <div class="card-header bg-warning text-dark">
+                                <h3 class="h6 mb-0">Reporte de Calidad</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-6">Registros Validos: <span id="qualityValid5"></span></div>
+                                    <div class="col-6">Registros Invalidos: <span id="qualityInvalid5"></span></div>
+                                    <div class="col-6">Temperaturas Negativas: <span id="qualityBadTemp5"></span></div>
+                                    <div class="col-6">Humedades Negativas: <span id="qualityBadHum5"></span></div>
+                                    <div class="col-6">Presiones Negativas: <span id="qualityBadPres5"></span></div>
+                                    <div class="col-6">Validez: <span id="qualityPct5"></span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card border-info mb-3">
+                            <div class="card-header bg-info text-white">
+                                <h3 class="h6 mb-0">Muestra de Datos Validos</h3>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive" style="max-height: 220px;">
+                                    <table class="table table-sm table-striped mb-0" id="sampleTable5">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Temperatura</th>
+                                                <th>Humedad</th>
+                                                <th>Presion</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button id="exportJsonBtn" class="btn btn-success mt-2">
+                            <i class="bi bi-download"></i> Exportar Estadisticas
+                        </button>
+                        <button id="exportDataBtn" class="btn btn-outline-success mt-2">
+                            <i class="bi bi-table"></i> Exportar Datos Validos
+                        </button>
                     </div>
                 </div>
                 <div class="card-footer text-end">
