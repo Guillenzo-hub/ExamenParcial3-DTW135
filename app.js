@@ -33,7 +33,7 @@ const App = {
             if (photo) {
                 this.photoData = photo;
             }
-        } catch (e) {}
+        } catch (e) { }
     },
 
     saveCompleted() {
@@ -228,6 +228,10 @@ const App = {
             this.drawMapInstant();
             return;
         }
+        if (this.mapInterval) {
+            clearInterval(this.mapInterval);
+            this.mapInterval = null;
+        }
 
         const canvas = document.getElementById('mapCanvas');
         const ctx = canvas.getContext('2d');
@@ -238,7 +242,7 @@ const App = {
         btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Dibujando...';
 
         ctx.clearRect(0, 0, w, h);
-        ctx.fillStyle = '#e8f5e9';
+        ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, w, h);
 
         const status = document.getElementById('canvasStatus');
@@ -246,134 +250,239 @@ const App = {
 
         const steps = [
             {
-                label: 'Parque Central',
+                label: 'Avenida Principal',
                 draw: () => {
-                    ctx.fillStyle = '#a5d6a7';
-                    ctx.fillRect(50, 50, 200, 150);
-                    ctx.fillStyle = '#2e7d32';
-                    ctx.font = '14px sans-serif';
-                    ctx.fillText('PARQUE CENTRAL', 90, 140);
-                }
-            },
-            {
-                label: 'Lago',
-                draw: () => {
-                    ctx.fillStyle = '#90caf9';
-                    ctx.fillRect(400, 200, 150, 100);
-                    ctx.fillStyle = '#1565c0';
-                    ctx.font = '14px sans-serif';
-                    ctx.fillText('LAGO', 460, 260);
-                }
-            },
-            {
-                label: 'Av. Central',
-                draw: () => {
-                    ctx.fillStyle = '#795548';
-                    ctx.fillRect(250, 0, 8, h);
-                    ctx.fillStyle = '#5d4037';
-                    ctx.font = '12px sans-serif';
-                    ctx.fillText('Av. Central', 180, 20);
-                }
-            },
-            {
-                label: 'Calle 1',
-                draw: () => {
-                    ctx.fillStyle = '#795548';
-                    ctx.fillRect(0, 200, w, 6);
-                    ctx.fillStyle = '#5d4037';
-                    ctx.font = '12px sans-serif';
-                    ctx.fillText('Calle 1', 20, 195);
-                }
-            },
-            {
-                label: 'Edificio A',
-                draw: () => {
-                    ctx.fillStyle = '#ffcc80';
-                    ctx.fillRect(300, 50, 80, 60);
-                    ctx.fillStyle = '#e65100';
-                    ctx.font = '10px sans-serif';
+                    // Calle central
+                    ctx.fillStyle = '#000000';
+                    ctx.fillRect(295, 0, 10, h);
+
+                    // Nombre de calle
+                    ctx.save();
+                    ctx.translate(300, 300);
+                    ctx.rotate(Math.PI / 2);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 9px sans-serif';
                     ctx.textAlign = 'center';
-                    ctx.fillText('Edificio A', 340, 85);
+                    ctx.fillText('AVENIDA CENTRAL', 0, 3);
+                    ctx.restore();
+                }
+            },
+            {
+                label: 'Calles del lado izquierdo',
+                draw: () => {
+                    ctx.fillStyle = '#4f4f4f';
+                    ctx.fillRect(0, 190, 295, 15);
+                    ctx.fillRect(0, 395, 295, 15);
+
+                    // Nombres de calles
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 9px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('CALLE NORTE', 147, 201);
+                    ctx.fillText('CALLE SUR', 147, 406);
                     ctx.textAlign = 'left';
                 }
             },
             {
-                label: 'Museo',
+                label: 'Zona Recreativa Oeste y Lago',
                 draw: () => {
-                    ctx.fillStyle = '#ce93d8';
-                    ctx.fillRect(350, 300, 70, 70);
-                    ctx.fillStyle = '#6a1b9a';
-                    ctx.font = '10px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('Museo', 385, 340);
-                    ctx.textAlign = 'left';
-                }
-            },
-            {
-                label: 'Rectángulo (Zona Restringida)',
-                draw: () => {
-                    ctx.strokeStyle = '#d32f2f';
-                    ctx.lineWidth = 3;
-                    ctx.strokeRect(420, 50, 120, 80);
-                    ctx.fillStyle = '#d32f2f';
-                    ctx.font = '11px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('Zona Restringida', 480, 100);
-                    ctx.textAlign = 'left';
-                }
-            },
-            {
-                label: 'Línea de límite',
-                draw: () => {
-                    ctx.strokeStyle = '#1976d2';
-                    ctx.lineWidth = 3;
+                    // Zona Recreativa Oeste
+                    ctx.fillStyle = '#abebc6';
+                    ctx.fillRect(10, 10, 275, 170);
+                    ctx.fillStyle = '#196f3d';
+                    ctx.font = 'bold 11px sans-serif';
+                    ctx.fillText('ZONA RECREATIVA', 200, 160);
+
+                    // Lago Artificial
+                    ctx.fillStyle = '#5dade2';
                     ctx.beginPath();
-                    ctx.moveTo(50, 320);
-                    ctx.lineTo(250, 350);
-                    ctx.stroke();
-                    ctx.fillStyle = '#1976d2';
-                    ctx.font = '11px sans-serif';
-                    ctx.fillText('Línea de límite', 60, 315);
+                    ctx.arc(110, 95, 60, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#1b4f72';
+                    ctx.font = 'bold 12px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('LAGO', 110, 90);
+                    ctx.fillText('ARTIFICIAL', 110, 105);
+                    ctx.textAlign = 'left';
                 }
             },
             {
-                label: 'Círculo (Zona de seguridad)',
+                label: 'Zona Recreativa Este (Nueva)',
                 draw: () => {
-                    ctx.strokeStyle = '#f57c00';
-                    ctx.lineWidth = 3;
-                    ctx.beginPath();
-                    ctx.arc(550, 100, 40, 0, Math.PI * 2);
-                    ctx.stroke();
-                    ctx.fillStyle = '#f57c00';
-                    ctx.font = '11px sans-serif';
+                    // Zona Recreativa Este (Recuadro que va debajo de la diagonal superior)
+                    ctx.fillStyle = '#abebc6';
+                    ctx.fillRect(325, 70, 255, 185);
+                    ctx.fillStyle = '#196f3d';
+                    ctx.font = 'bold 11px sans-serif';
+                    ctx.fillText('ZONA RECREATIVA', 345, 230);
+                }
+            },
+            {
+                label: 'Zona Comercial',
+                draw: () => {
+                    ctx.fillStyle = '#9fa8da';
+                    ctx.fillRect(10, 215, 275, 170);
+                    ctx.fillStyle = '#1a237e';
+                    ctx.font = 'bold 12px sans-serif';
                     ctx.textAlign = 'center';
-                    ctx.fillText('Zona de seguridad', 550, 105);
+                    ctx.fillText('ZONA COMERCIAL', 147, 305);
                     ctx.textAlign = 'left';
+                }
+            },
+            {
+                label: 'Parque Nacional',
+                draw: () => {
+                    ctx.fillStyle = '#abebc6';
+                    ctx.fillRect(10, 420, 275, 170);
+                    ctx.fillStyle = '#196f3d';
+                    ctx.font = 'bold 12px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('PARQUE NACIONAL', 147, 510);
+                    ctx.textAlign = 'left';
+                }
+            },
+            {
+                label: 'Calle Diagonal Superior (Por encima de Zona Recreativa)',
+                draw: () => {
+                    // Se dibuja aquí para que quede encima del recuadro verde recreativo
+                    ctx.strokeStyle = '#4f4f4f';
+                    ctx.lineWidth = 12;
+                    ctx.beginPath();
+                    ctx.moveTo(300, 90);
+                    ctx.lineTo(600, 190);
+                    ctx.stroke();
+
+                    // Nombre de calle diagonal
+                    ctx.save();
+                    ctx.translate(450, 140);
+                    ctx.rotate(0.32175);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 8px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('AV. DIAGONAL NORTE', 0, 3);
+                    ctx.restore();
+                }
+            },
+            {
+                label: 'Calles del lado derecho',
+                draw: () => {
+                    ctx.fillStyle = '#4f4f4f';
+                    ctx.fillRect(305, 270, 295, 12);
+                    ctx.fillRect(305, 375, 295, 12);
+                    ctx.fillRect(305, 480, 295, 12);
+                    ctx.fillRect(445, 270, 12, 222);
+
+                    // Nombre de calle vertical
+                    ctx.save();
+                    ctx.translate(451, 380);
+                    ctx.rotate(Math.PI / 2);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 7px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('PASAJE RESIDENCIAL', 0, 3);
+                    ctx.restore();
+                    // Nombres de calles horizontales (mostrado solo una vez a la derecha)
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '7px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Calle de la Paz', 520, 279);
+                    ctx.fillText('Calle de la Unión', 520, 384);
+                    ctx.fillText('Calle de la Libertad', 520, 489);
+                    ctx.textAlign = 'left';
+                }
+            },
+            {
+                label: 'Zonas Residenciales',
+                draw: () => {
+                    ctx.fillStyle = '#fff9c4';
+                    ctx.fillRect(315, 290, 120, 75);
+                    ctx.fillRect(467, 290, 120, 75);
+                    ctx.fillRect(315, 395, 120, 75);
+                    ctx.fillRect(467, 395, 120, 75);
+                    ctx.fillStyle = '#7f8c8d';
+                    ctx.font = '9px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('ZONA RESIDENCIAL', 375, 332);
+                    ctx.fillText('ZONA RESIDENCIAL', 527, 332);
+                    ctx.fillText('ZONA RESIDENCIAL', 375, 437);
+                    ctx.fillText('ZONA RESIDENCIAL', 527, 437);
+                    ctx.textAlign = 'left';
+                }
+            },
+            {
+                label: 'Calle Diagonal Inferior',
+                draw: () => {
+                    ctx.strokeStyle = '#4f4f4f';
+                    ctx.lineWidth = 12;
+                    ctx.beginPath();
+                    ctx.moveTo(450, 490);
+                    ctx.lineTo(515, 600);
+                    ctx.stroke();
+
+                    // Nombre de diagonal inferior
+                    ctx.save();
+                    ctx.translate(482, 545);
+                    ctx.rotate(1.037);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 8px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('PASEO DEL SUR', 0, 3);
+                    ctx.restore();
                 }
             },
             {
                 label: '📍 Tu ubicación',
                 draw: () => {
-                    const px = { x: w / 2, y: h / 2 };
+                    let px = { x: w / 2, y: h / 2 };
+                    let latStr = '';
+                    let lngStr = '';
+                    if (this.location) {
+                        const lat = this.location.lat;
+                        const lng = this.location.lng;
+                        latStr = lat.toFixed(6);
+                        lngStr = lng.toFixed(6);
+                        if (lat >= 13.0 && lat <= 14.6 && lng >= -90.5 && lng <= -87.4) {
+                            px.x = ((lng - (-90.5)) / (-87.4 - (-90.5))) * w;
+                            px.y = (1 - (lat - 13.0) / (14.6 - 13.0)) * h;
+                        } else {
+                            const latFract = Math.abs(lat) % 1;
+                            const lngFract = Math.abs(lng) % 1;
+                            px.x = 80 + latFract * (w - 160);
+                            px.y = 80 + lngFract * (h - 160);
+                        }
+                        px.x = Math.max(60, Math.min(w - 60, px.x));
+                        px.y = Math.max(60, Math.min(h - 60, px.y));
+                    }
                     ctx.beginPath();
-                    ctx.arc(px.x, px.y, 10, 0, Math.PI * 2);
+                    ctx.arc(px.x, px.y, 8, 0, Math.PI * 2);
                     ctx.fillStyle = '#e53935';
                     ctx.fill();
                     ctx.strokeStyle = '#fff';
-                    ctx.lineWidth = 3;
+                    ctx.lineWidth = 2;
                     ctx.stroke();
-                    ctx.font = 'bold 14px sans-serif';
+                    ctx.beginPath();
+                    ctx.arc(px.x, px.y, 16, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(229, 57, 53, 0.4)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    ctx.fillStyle = '#e53935';
+                    ctx.font = 'bold 12px sans-serif';
                     ctx.textAlign = 'center';
-                    ctx.fillText('📍', px.x, px.y - 18);
+                    ctx.fillText('📍 Tu Ubicación', px.x, px.y - 22);
+                    if (latStr && lngStr) {
+                        ctx.font = '9px sans-serif';
+                        ctx.fillStyle = '#37474f';
+                        ctx.fillText(`(${latStr}, ${lngStr})`, px.x, px.y - 10);
+                    }
                     ctx.textAlign = 'left';
                 }
             }
         ];
-
         let i = 0;
-        const interval = setInterval(() => {
+        this.mapInterval = setInterval(() => {
             if (i >= steps.length) {
-                clearInterval(interval);
+                clearInterval(this.mapInterval);
+                this.mapInterval = null;
                 status.textContent = 'Mapa dibujado correctamente con tu ubicación marcada.';
                 status.classList.remove('text-muted');
                 status.classList.add('text-success', 'fw-bold');
@@ -387,99 +496,182 @@ const App = {
             i++;
         }, 200);
     },
-
     drawMapInstant() {
         const canvas = document.getElementById('mapCanvas');
         const ctx = canvas.getContext('2d');
         const w = canvas.width;
         const h = canvas.height;
         const status = document.getElementById('canvasStatus');
-
         ctx.clearRect(0, 0, w, h);
-        ctx.fillStyle = '#e8f5e9';
+        ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, w, h);
+        // Avenida Principal
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(295, 0, 10, h);
 
-        ctx.fillStyle = '#a5d6a7';
-        ctx.fillRect(50, 50, 200, 150);
-        ctx.fillStyle = '#2e7d32';
-        ctx.font = '14px sans-serif';
-        ctx.fillText('PARQUE CENTRAL', 90, 140);
-
-        ctx.fillStyle = '#90caf9';
-        ctx.fillRect(400, 200, 150, 100);
-        ctx.fillStyle = '#1565c0';
-        ctx.font = '14px sans-serif';
-        ctx.fillText('LAGO', 460, 260);
-
-        ctx.fillStyle = '#795548';
-        ctx.fillRect(250, 0, 8, h);
-        ctx.fillStyle = '#5d4037';
-        ctx.font = '12px sans-serif';
-        ctx.fillText('Av. Central', 180, 20);
-
-        ctx.fillStyle = '#795548';
-        ctx.fillRect(0, 200, w, 6);
-        ctx.fillStyle = '#5d4037';
-        ctx.font = '12px sans-serif';
-        ctx.fillText('Calle 1', 20, 195);
-
-        ctx.fillStyle = '#ffcc80';
-        ctx.fillRect(300, 50, 80, 60);
-        ctx.fillStyle = '#e65100';
-        ctx.font = '10px sans-serif';
+        ctx.save();
+        ctx.translate(300, 300);
+        ctx.rotate(Math.PI / 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 9px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('Edificio A', 340, 85);
-        ctx.textAlign = 'left';
+        ctx.fillText('AVENIDA CENTRAL', 0, 3);
+        ctx.restore();
+        // Calles rectas
+        ctx.fillStyle = '#4f4f4f';
+        ctx.fillRect(305, 270, 295, 12);
+        ctx.fillRect(305, 375, 295, 12);
+        ctx.fillRect(305, 480, 295, 12);
+        ctx.fillRect(445, 270, 12, 222);
+        ctx.fillRect(0, 190, 295, 15);
+        ctx.fillRect(0, 395, 295, 15);
 
-        ctx.fillStyle = '#ce93d8';
-        ctx.fillRect(350, 300, 70, 70);
-        ctx.fillStyle = '#6a1b9a';
-        ctx.font = '10px sans-serif';
+        // Nombres calles rectas izquierdas
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 9px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('Museo', 385, 340);
-        ctx.textAlign = 'left';
-
-        ctx.strokeStyle = '#d32f2f';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(420, 50, 120, 80);
-        ctx.fillStyle = '#d32f2f';
-        ctx.font = '11px sans-serif';
+        ctx.fillText('CALLE NORTE', 147, 201);
+        ctx.fillText('CALLE SUR', 147, 406);
+        // Nombres calles rectas derechas
+        ctx.save();
+        ctx.translate(451, 380);
+        ctx.rotate(Math.PI / 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 7px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('Zona Restringida', 480, 100);
+        ctx.fillText('PASAJE RESIDENCIAL', 0, 3);
+        ctx.restore();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '7px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Calle de la Paz', 520, 279);
+        ctx.fillText('Calle de la Unión', 520, 384);
+        ctx.fillText('Calle de la Libertad', 520, 489);
         ctx.textAlign = 'left';
+        // Zona Recreativa Oeste y Lago
+        ctx.fillStyle = '#abebc6';
+        ctx.fillRect(10, 10, 275, 170);
+        ctx.fillStyle = '#196f3d';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.fillText('ZONA RECREATIVA', 200, 160);
 
-        ctx.strokeStyle = '#1976d2';
-        ctx.lineWidth = 3;
+        ctx.fillStyle = '#5dade2';
         ctx.beginPath();
-        ctx.moveTo(50, 320);
-        ctx.lineTo(250, 350);
+        ctx.arc(110, 95, 60, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#1b4f72';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('LAGO', 110, 90);
+        ctx.fillText('ARTIFICIAL', 110, 105);
+        ctx.textAlign = 'left';
+        // Zona Recreativa Este (Nueva)
+        ctx.fillStyle = '#abebc6';
+        ctx.fillRect(325, 70, 255, 185);
+        ctx.fillStyle = '#196f3d';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.fillText('ZONA RECREATIVA', 345, 230);
+        // Zona Comercial
+        ctx.fillStyle = '#9fa8da';
+        ctx.fillRect(10, 215, 275, 170);
+        ctx.fillStyle = '#1a237e';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('ZONA COMERCIAL', 147, 305);
+        ctx.textAlign = 'left';
+        // Parque Nacional
+        ctx.fillStyle = '#abebc6';
+        ctx.fillRect(10, 420, 275, 170);
+        ctx.fillStyle = '#196f3d';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('PARQUE NACIONAL', 147, 510);
+        ctx.textAlign = 'left';
+        // Calle
+        ctx.strokeStyle = '#4f4f4f';
+        ctx.lineWidth = 12;
+        ctx.beginPath();
+        ctx.moveTo(300, 90);
+        ctx.lineTo(600, 190);
+        ctx.moveTo(450, 490);
+        ctx.lineTo(515, 600);
         ctx.stroke();
-        ctx.fillStyle = '#1976d2';
-        ctx.font = '11px sans-serif';
-        ctx.fillText('Línea de límite', 60, 315);
-
-        ctx.strokeStyle = '#f57c00';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(550, 100, 40, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.fillStyle = '#f57c00';
-        ctx.font = '11px sans-serif';
+        // Nombre diagonal superior
+        ctx.save();
+        ctx.translate(450, 140);
+        ctx.rotate(0.32175);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 8px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('Zona de seguridad', 550, 105);
+        ctx.fillText('AV. DIAGONAL NORTE', 0, 3);
+        ctx.restore();
+        // Nombre diagonal inferior
+        ctx.save();
+        ctx.translate(482, 545);
+        ctx.rotate(1.037);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 8px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('PASEO DEL SUR', 0, 3);
+        ctx.restore();
+        // Bloques Residenciales
+        ctx.fillStyle = '#fff9c4';
+        ctx.fillRect(315, 290, 120, 75);
+        ctx.fillRect(467, 290, 120, 75);
+        ctx.fillRect(315, 395, 120, 75);
+        ctx.fillRect(467, 395, 120, 75);
+        ctx.fillStyle = '#7f8c8d';
+        ctx.font = '9px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('ZONA RESIDENCIAL', 375, 332);
+        ctx.fillText('ZONA RESIDENCIAL', 527, 332);
+        ctx.fillText('ZONA RESIDENCIAL', 375, 437);
+        ctx.fillText('ZONA RESIDENCIAL', 527, 437);
         ctx.textAlign = 'left';
-
-        const px = { x: w / 2, y: h / 2 };
+        // ubicacion
+        let px = { x: w / 2, y: h / 2 };
+        let latStr = '';
+        let lngStr = '';
+        if (this.location) {
+            const lat = this.location.lat;
+            const lng = this.location.lng;
+            latStr = lat.toFixed(6);
+            lngStr = lng.toFixed(6);
+            if (lat >= 13.0 && lat <= 14.6 && lng >= -90.5 && lng <= -87.4) {
+                px.x = ((lng - (-90.5)) / (-87.4 - (-90.5))) * w;
+                px.y = (1 - (lat - 13.0) / (14.6 - 13.0)) * h;
+            } else {
+                const latFract = Math.abs(lat) % 1;
+                const lngFract = Math.abs(lng) % 1;
+                px.x = 80 + latFract * (w - 160);
+                px.y = 80 + lngFract * (h - 160);
+            }
+            px.x = Math.max(60, Math.min(w - 60, px.x));
+            px.y = Math.max(60, Math.min(h - 60, px.y));
+        }
         ctx.beginPath();
-        ctx.arc(px.x, px.y, 10, 0, Math.PI * 2);
+        ctx.arc(px.x, px.y, 8, 0, Math.PI * 2);
         ctx.fillStyle = '#e53935';
         ctx.fill();
         ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 2;
         ctx.stroke();
-        ctx.font = 'bold 14px sans-serif';
+
+        ctx.beginPath();
+        ctx.arc(px.x, px.y, 16, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(229, 57, 53, 0.4)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#e53935';
+        ctx.font = 'bold 12px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('📍', px.x, px.y - 18);
+        ctx.fillText('📍 Tu Ubicación', px.x, px.y - 22);
+        if (latStr && lngStr) {
+            ctx.font = '9px sans-serif';
+            ctx.fillStyle = '#37474f';
+            ctx.fillText(`(${latStr}, ${lngStr})`, px.x, px.y - 10);
+        }
         ctx.textAlign = 'left';
 
         status.textContent = 'Mapa (nivel completado)';
