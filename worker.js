@@ -13,35 +13,46 @@ function processLevel4(data) {
     let sumTemp = 0, sumHum = 0;
     let maxTemp = -Infinity, maxHum = -Infinity;
     let minTemp = Infinity, minHum = Infinity;
+    let index = 0;
+    const batchSize = 500;
 
-    for (let i = 0; i < total; i++) {
-        const d = data[i];
-        sumTemp += d.temperature;
-        sumHum += d.humidity;
-        if (d.temperature > maxTemp) maxTemp = d.temperature;
-        if (d.humidity > maxHum) maxHum = d.humidity;
-        if (d.temperature < minTemp) minTemp = d.temperature;
-        if (d.humidity < minHum) minHum = d.humidity;
+    function processBatch() {
+        const limit = Math.min(index + batchSize, total);
 
-        if (i % 1000 === 0) {
-            self.postMessage({
-                type: 'progress',
-                progress: Math.round((i / total) * 100)
-            });
+        for (; index < limit; index++) {
+            const d = data[index];
+            sumTemp += d.temperature;
+            sumHum += d.humidity;
+            if (d.temperature > maxTemp) maxTemp = d.temperature;
+            if (d.humidity > maxHum) maxHum = d.humidity;
+            if (d.temperature < minTemp) minTemp = d.temperature;
+            if (d.humidity < minHum) minHum = d.humidity;
         }
+
+        self.postMessage({
+            type: 'progress',
+            progress: Math.round((index / total) * 100)
+        });
+
+        if (index < total) {
+            setTimeout(processBatch, 10);
+            return;
+        }
+
+        self.postMessage({
+            type: 'result',
+            stats: {
+                avgTemp: (sumTemp / total).toFixed(2),
+                avgHum: (sumHum / total).toFixed(2),
+                maxTemp: maxTemp.toFixed(2),
+                maxHum: maxHum.toFixed(2),
+                minTemp: minTemp.toFixed(2),
+                minHum: minHum.toFixed(2)
+            }
+        });
     }
 
-    self.postMessage({
-        type: 'result',
-        stats: {
-            avgTemp: (sumTemp / total).toFixed(2),
-            avgHum: (sumHum / total).toFixed(2),
-            maxTemp: maxTemp.toFixed(2),
-            maxHum: maxHum.toFixed(2),
-            minTemp: minTemp.toFixed(2),
-            minHum: minHum.toFixed(2)
-        }
-    });
+    processBatch();
 }
 
 function processLevel5(data) {
