@@ -110,6 +110,12 @@ const App = {
             this.showAlert('Debes completar el nivel anterior primero.', 'warning');
             return;
         }
+        
+        // MODIFICACIÓN NIVEL 3: Apagar cámara si salimos del nivel 3
+        if (num !== 3 && this.currentLevel === 3) {
+            this.stopCamera();
+        }
+        
         this.showLevel(num);
     },
 
@@ -527,13 +533,29 @@ const App = {
 
     capturePhoto() {
         const video = document.getElementById('video');
+
+        // NUEVO SEGURO: Evitar tomar una foto negra si la cámara está apagada
+        if (!video.srcObject) {
+            this.showAlert('Por favor, inicia la cámara primero antes de capturar.', 'warning');
+            return;
+        }
+
         const canvas = document.getElementById('photoCanvas');
         canvas.width = video.videoWidth || 640;
         canvas.height = video.videoHeight || 480;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        this.photoData = canvas.toDataURL('image/png');
-        localStorage.setItem('escapeRoomPhoto', this.photoData);
+        
+        // MODIFICACIÓN NIVEL 3: Compresión JPEG al 60%
+        this.photoData = canvas.toDataURL('image/jpeg', 0.6);
+        
+        try {
+            localStorage.setItem('escapeRoomPhoto', this.photoData);
+        } catch(err) {
+            this.showAlert('Error: La imagen es demasiado pesada para la memoria local.', 'danger');
+            return;
+        }
+
         this.displaySavedPhoto();
         if (!this.completedLevels.has(3)) {
             this.completeLevel(3);
@@ -563,16 +585,51 @@ const App = {
         if (!file) return;
         const reader = new FileReader();
         reader.onload = (ev) => {
-            this.photoData = ev.target.result;
-            localStorage.setItem('escapeRoomPhoto', this.photoData);
-            this.displaySavedPhoto();
-            document.getElementById('cameraError').classList.add('d-none');
-            if (!this.completedLevels.has(3)) {
-                this.completeLevel(3);
-                document.getElementById('captureBtn').innerHTML = '<i class="bi bi-camera-fill"></i> Capturar Otra';
-            }
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.getElementById('photoCanvas');
+                // MODIFICACIÓN NIVEL 3: Redimensionar y comprimir la foto subida manualmente
+                const scale = Math.min(800 / img.width, 1);
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                
+                this.photoData = canvas.toDataURL('image/jpeg', 0.6);
+                
+                try {
+                    localStorage.setItem('escapeRoomPhoto', this.photoData);
+                    this.displaySavedPhoto();
+                    document.getElementById('cameraError').classList.add('d-none');
+                    if (!this.completedLevels.has(3)) {
+                        this.completeLevel(3);
+                        document.getElementById('captureBtn').innerHTML = '<i class="bi bi-camera-fill"></i> Capturar Otra';
+                    }
+                } catch(err) {
+                    this.showAlert('Error de memoria local al procesar la imagen.', 'danger');
+                }
+            };
+            img.src = ev.target.result;
         };
         reader.readAsDataURL(file);
+    },
+
+    // MODIFICACIÓN NIVEL 3: Apagar hardware de la cámara y resetear el botón visual
+    stopCamera() {
+        const video = document.getElementById('video');
+        if (video && video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
+            video.srcObject = null;
+        }
+
+        // NUEVO SEGURO: Regresar el botón a color amarillo para que sepas que debes encenderla de nuevo
+        const startBtn = document.getElementById('startCameraBtn');
+        if (startBtn) {
+            startBtn.disabled = false;
+            startBtn.innerHTML = '<i class="bi bi-camera-video-fill"></i> Iniciar Cámara';
+            startBtn.classList.remove('btn-success');
+            startBtn.classList.add('btn-warning');
+        }
     },
 
     // ============ LEVEL 4 ============
