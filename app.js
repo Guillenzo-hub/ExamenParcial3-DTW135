@@ -5,6 +5,7 @@ const App = {
     photoData: null,
     worker: null,
     level5Stats: null,
+    level5Data: null,
 
     init() {
         this.loadState();
@@ -60,6 +61,7 @@ const App = {
         document.getElementById('processLevel4Btn').addEventListener('click', () => this.processLevel4());
         document.getElementById('processLevel5Btn').addEventListener('click', () => this.processLevel5());
         document.getElementById('exportJsonBtn').addEventListener('click', () => this.exportJSON());
+        document.getElementById('exportDataBtn').addEventListener('click', () => this.exportData());
 
         document.querySelectorAll('.next-level-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -140,7 +142,7 @@ const App = {
         this.showAlert(`Nivel ${num} completado!`, 'success');
     },
 
-    // ============ LEVEL 1 ============
+    // LEVEL 1
     getLocation() {
         const btn = document.getElementById('getLocationBtn');
         btn.disabled = true;
@@ -218,7 +220,7 @@ const App = {
         document.getElementById('locationResult').classList.add('d-none');
     },
 
-    // ============ LEVEL 2 ============
+    // LEVEL 2
     drawMap(redraw = false) {
         if (!this.location) {
             this.showAlert('Debes completar el Nivel 1 primero.', 'warning');
@@ -431,7 +433,7 @@ const App = {
                 }
             },
             {
-                label: '📍 Tu ubicación',
+                label: 'Tu ubicacion',
                 draw: () => {
                     let px = { x: w / 2, y: h / 2 };
                     let latStr = '';
@@ -468,7 +470,7 @@ const App = {
                     ctx.fillStyle = '#e53935';
                     ctx.font = 'bold 12px sans-serif';
                     ctx.textAlign = 'center';
-                    ctx.fillText('📍 Tu Ubicación', px.x, px.y - 22);
+                    ctx.fillText('Tu Ubicacion', px.x, px.y - 22);
                     if (latStr && lngStr) {
                         ctx.font = '9px sans-serif';
                         ctx.fillStyle = '#37474f';
@@ -666,7 +668,7 @@ const App = {
         ctx.fillStyle = '#e53935';
         ctx.font = 'bold 12px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('📍 Tu Ubicación', px.x, px.y - 22);
+        ctx.fillText('Tu Ubicacion', px.x, px.y - 22);
         if (latStr && lngStr) {
             ctx.font = '9px sans-serif';
             ctx.fillStyle = '#37474f';
@@ -679,7 +681,7 @@ const App = {
         status.classList.add('text-success', 'fw-bold');
     },
 
-    // ============ LEVEL 3 ============
+    // LEVEL 3
     async startCamera() {
         const startBtn = document.getElementById('startCameraBtn');
         startBtn.disabled = true;
@@ -767,7 +769,7 @@ const App = {
         reader.readAsDataURL(file);
     },
 
-    // ============ LEVEL 4 ============
+    // LEVEL 4
     processLevel4() {
         const btn = document.getElementById('processLevel4Btn');
         btn.disabled = true;
@@ -833,7 +835,7 @@ const App = {
         this.worker.postMessage({ type: 'level4', data });
     },
 
-    // ============ LEVEL 5 ============
+    // LEVEL 5
     processLevel5() {
         const btn = document.getElementById('processLevel5Btn');
         btn.disabled = true;
@@ -869,6 +871,8 @@ const App = {
                 data.push({ temperature: temp, humidity: hum, pressure: pres });
             }
 
+            this.level5Data = data;
+
             this.worker = new Worker('worker.js');
 
             this.worker.onmessage = (e) => {
@@ -878,12 +882,29 @@ const App = {
                     progressBar.textContent = msg.progress + '%';
                 } else if (msg.type === 'result') {
                     const s = msg.stats;
-                    document.getElementById('avgTemp5').textContent = s.avgTemp + '°C';
+                    document.getElementById('avgTemp5').textContent = s.avgTemp + 'C';
                     document.getElementById('avgHum5').textContent = s.avgHum + '%';
                     document.getElementById('avgPres5').textContent = s.avgPres + ' hPa';
+                    document.getElementById('medianTemp5').textContent = s.medianTemp + 'C';
+                    document.getElementById('maxHum5').textContent = s.maxHum + '%';
+                    document.getElementById('maxPres5').textContent = s.maxPres + ' hPa';
+                    document.getElementById('stdDevTemp5').textContent = s.stdDevTemp;
+                    document.getElementById('stdDevHum5').textContent = s.stdDevHum;
+                    document.getElementById('stdDevPres5').textContent = s.stdDevPres;
                     document.getElementById('topTemps5').textContent = s.top10Temps.join(', ');
                     document.getElementById('topPress5').textContent = s.top10Press.join(', ');
                     document.getElementById('validCount5').textContent = s.validCount.toLocaleString();
+                    document.getElementById('qualityValid5').textContent = s.validCount.toLocaleString();
+                    document.getElementById('qualityInvalid5').textContent = (s.totalCount - s.validCount).toLocaleString();
+                    document.getElementById('qualityBadTemp5').textContent = s.invalidTemp.toLocaleString();
+                    document.getElementById('qualityBadHum5').textContent = s.invalidHum.toLocaleString();
+                    document.getElementById('qualityBadPres5').textContent = s.invalidPres.toLocaleString();
+                    document.getElementById('qualityPct5').textContent = (s.validCount / s.totalCount * 100).toFixed(1) + '%';
+
+                    this.renderScatterPlot(s.scatterSample);
+                    this.renderHistogram(s.tempDistribution);
+                    this.renderSampleTable(s.sampleRecords);
+
                     document.getElementById('statsContainer5').classList.remove('d-none');
                     progressBar.classList.remove('progress-bar-animated');
                     progressBar.style.width = '100%';
@@ -899,7 +920,143 @@ const App = {
         }, 100);
     },
 
-    // ============ EXPORT JSON ============
+    renderScatterPlot(samples) {
+        const canvas = document.getElementById('scatterCanvas5');
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width, h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+
+        ctx.fillStyle = '#f8f9fa';
+        ctx.fillRect(0, 0, w, h);
+
+        let minT = Infinity, maxT = -Infinity;
+        let minH = Infinity, maxH = -Infinity;
+        for (let i = 0; i < samples.length; i++) {
+            const s = samples[i];
+            if (s.t < minT) minT = s.t;
+            if (s.t > maxT) maxT = s.t;
+            if (s.h < minH) minH = s.h;
+            if (s.h > maxH) maxH = s.h;
+        }
+
+        const pad = 45;
+        const plotW = w - pad * 2;
+        const plotH = h - pad * 2;
+
+        ctx.strokeStyle = '#666';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(pad, pad);
+        ctx.lineTo(pad, h - pad);
+        ctx.lineTo(w - pad, h - pad);
+        ctx.stroke();
+
+        for (let i = 0; i < samples.length; i++) {
+            const s = samples[i];
+            const x = pad + ((s.t - minT) / (maxT - minT || 1)) * plotW;
+            const y = pad + plotH - ((s.h - minH) / (maxH - minH || 1)) * plotH;
+
+            ctx.beginPath();
+            ctx.arc(x, y, 2, 0, Math.PI * 2);
+            ctx.fillStyle = s.v ? '#28a745' : '#dc3545';
+            ctx.fill();
+        }
+
+        ctx.fillStyle = '#666';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Temperatura', w / 2, h - 5);
+        ctx.save();
+        ctx.translate(12, h / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText('Humedad', 0, 0);
+        ctx.restore();
+
+        ctx.font = '9px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(minT.toFixed(1), pad - 4, h - pad + 3);
+        ctx.fillText(maxT.toFixed(1), pad + plotW, h - pad + 3);
+        ctx.textAlign = 'center';
+        ctx.fillText(maxH.toFixed(1), pad - 4, pad + 8);
+        ctx.fillText(minH.toFixed(1), pad - 4, h - pad + 3);
+
+        ctx.fillStyle = '#28a745';
+        ctx.textAlign = 'left';
+        ctx.font = '9px sans-serif';
+        ctx.fillRect(pad, h - pad + 8, 8, 8);
+        ctx.fillText(' Validos', pad + 10, h - pad + 16);
+        ctx.fillStyle = '#dc3545';
+        ctx.fillRect(pad + 70, h - pad + 8, 8, 8);
+        ctx.fillText(' Invalidos', pad + 80, h - pad + 16);
+    },
+
+    renderHistogram(dist) {
+        const canvas = document.getElementById('histogramCanvas5');
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width, h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+
+        ctx.fillStyle = '#f8f9fa';
+        ctx.fillRect(0, 0, w, h);
+
+        const labels = ['<0', '0-10', '10-15', '15-20', '20-25', '25-30', '30-35', '35+'];
+        const colors = ['#dc3545', '#fd7e14', '#ffc107', '#28a745', '#20c997', '#17a2b8', '#007bff', '#6f42c1'];
+        const barCount = dist.length;
+        const pad = 35;
+        const plotW = w - pad * 2;
+        const plotH = h - pad * 2;
+
+        let maxVal = 0;
+        for (let i = 0; i < dist.length; i++) {
+            if (dist[i] > maxVal) maxVal = dist[i];
+        }
+
+        const barW = Math.floor(plotW / barCount) - 4;
+
+        ctx.strokeStyle = '#666';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(pad, pad);
+        ctx.lineTo(pad, h - pad);
+        ctx.lineTo(w - pad, h - pad);
+        ctx.stroke();
+
+        for (let i = 0; i < barCount; i++) {
+            const barH = (dist[i] / maxVal) * plotH;
+            const x = pad + i * (plotW / barCount) + 2;
+            const y = h - pad - barH;
+
+            ctx.fillStyle = colors[i];
+            ctx.fillRect(x, y, barW, barH);
+
+            ctx.fillStyle = '#666';
+            ctx.font = '8px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(labels[i], x + barW / 2, h - pad + 12);
+
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 8px sans-serif';
+            ctx.fillText(dist[i].toLocaleString(), x + barW / 2, y - 4);
+        }
+
+        ctx.fillStyle = '#666';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Rango de Temperatura (C)', w / 2, h - 2);
+    },
+
+    renderSampleTable(records) {
+        const tbody = document.querySelector('#sampleTable5 tbody');
+        tbody.innerHTML = '';
+        for (let i = 0; i < records.length; i++) {
+            const r = records[i];
+            const tr = document.createElement('tr');
+            tr.innerHTML = '<td>' + (i + 1) + '</td><td>' + r.t + ' C</td><td>' + r.h + '%</td><td>' + r.p + ' hPa</td>';
+            tbody.appendChild(tr);
+        }
+    },
+
+    // EXPORT
     exportJSON() {
         if (!this.level5Stats) {
             this.showAlert('No hay datos para exportar.', 'warning');
@@ -916,12 +1073,31 @@ const App = {
         this.showAlert('JSON exportado correctamente.', 'success');
     },
 
+    exportData() {
+        if (!this.level5Data) {
+            this.showAlert('No hay datos para exportar.', 'warning');
+            return;
+        }
+        const validos = this.level5Data.filter(function(d) {
+            return d.temperature >= 0 && d.humidity >= 0 && d.pressure >= 0;
+        });
+        const jsonStr = JSON.stringify(validos, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'datos_validos_250k.json';
+        a.click();
+        URL.revokeObjectURL(url);
+        this.showAlert(validos.length.toLocaleString() + ' registros exportados.', 'success');
+    },
+
     showCompletion() {
         const main = document.querySelector('main');
         main.innerHTML = `
             <div class="card shadow text-center">
                 <div class="card-body py-5">
-                    <div class="display-1 text-success mb-3">🎉</div>
+                    <div class="display-1 text-success mb-3"><i class="bi bi-check2-circle"></i></div>
                     <h2 class="mb-3">¡Felicidades!</h2>
                     <p class="lead">Has completado los 5 niveles y recuperado el acceso al sistema.</p>
                     <div class="row justify-content-center mt-4">
@@ -929,28 +1105,28 @@ const App = {
                             <ul class="list-group">
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     Nivel 1: El Guardián de la Ubicación
-                                    <span class="badge bg-success rounded-pill">✓</span>
+                                    <span class="badge bg-success rounded-pill"><i class="bi bi-check2"></i></span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    Nivel 2: El Cartógrafo Perdido
-                                    <span class="badge bg-success rounded-pill">✓</span>
+                                    Nivel 2: El Cartografo Perdido
+                                    <span class="badge bg-success rounded-pill"><i class="bi bi-check2"></i></span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     Nivel 3: La Evidencia del Explorador
-                                    <span class="badge bg-success rounded-pill">✓</span>
+                                    <span class="badge bg-success rounded-pill"><i class="bi bi-check2"></i></span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    Nivel 4: El Núcleo de Procesamiento
-                                    <span class="badge bg-success rounded-pill">✓</span>
+                                    Nivel 4: El Nucleo de Procesamiento
+                                    <span class="badge bg-success rounded-pill"><i class="bi bi-check2"></i></span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    Nivel 5: El Portal Cuántico
-                                    <span class="badge bg-success rounded-pill">✓</span>
+                                    Nivel 5: El Portal Cuantico
+                                    <span class="badge bg-success rounded-pill"><i class="bi bi-check2"></i></span>
                                 </li>
                             </ul>
                         </div>
                     </div>
-                    <button class="btn btn-primary btn-lg mt-4" onclick="location.reload()">
+                    <button class="btn btn-primary btn-lg mt-4" onclick="localStorage.clear(); location.reload()">
                         <i class="bi bi-arrow-counterclockwise"></i> Jugar de Nuevo
                     </button>
                 </div>
