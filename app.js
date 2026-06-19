@@ -5,6 +5,7 @@ const App = {
     photoData: null,
     worker: null,
     level5Stats: null,
+    level5Data: null,
 
     init() {
         this.loadState();
@@ -33,7 +34,7 @@ const App = {
             if (photo) {
                 this.photoData = photo;
             }
-        } catch (e) {}
+        } catch (e) { }
     },
 
     saveCompleted() {
@@ -60,6 +61,7 @@ const App = {
         document.getElementById('processLevel4Btn').addEventListener('click', () => this.processLevel4());
         document.getElementById('processLevel5Btn').addEventListener('click', () => this.processLevel5());
         document.getElementById('exportJsonBtn').addEventListener('click', () => this.exportJSON());
+        document.getElementById('exportDataBtn').addEventListener('click', () => this.exportData());
 
         document.querySelectorAll('.next-level-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -146,7 +148,7 @@ const App = {
         this.showAlert(`Nivel ${num} completado!`, 'success');
     },
 
-    // ============ LEVEL 1 ============
+    // LEVEL 1
     getLocation() {
         const btn = document.getElementById('getLocationBtn');
         btn.disabled = true;
@@ -224,7 +226,7 @@ const App = {
         document.getElementById('locationResult').classList.add('d-none');
     },
 
-    // ============ LEVEL 2 ============
+    // LEVEL 2
     drawMap(redraw = false) {
         if (!this.location) {
             this.showAlert('Debes completar el Nivel 1 primero.', 'warning');
@@ -233,6 +235,10 @@ const App = {
         if (this.completedLevels.has(2) && !redraw) {
             this.drawMapInstant();
             return;
+        }
+        if (this.mapInterval) {
+            clearInterval(this.mapInterval);
+            this.mapInterval = null;
         }
 
         const canvas = document.getElementById('mapCanvas');
@@ -244,7 +250,7 @@ const App = {
         btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Dibujando...';
 
         ctx.clearRect(0, 0, w, h);
-        ctx.fillStyle = '#e8f5e9';
+        ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, w, h);
 
         const status = document.getElementById('canvasStatus');
@@ -252,134 +258,239 @@ const App = {
 
         const steps = [
             {
-                label: 'Parque Central',
+                label: 'Avenida Principal',
                 draw: () => {
-                    ctx.fillStyle = '#a5d6a7';
-                    ctx.fillRect(50, 50, 200, 150);
-                    ctx.fillStyle = '#2e7d32';
-                    ctx.font = '14px sans-serif';
-                    ctx.fillText('PARQUE CENTRAL', 90, 140);
-                }
-            },
-            {
-                label: 'Lago',
-                draw: () => {
-                    ctx.fillStyle = '#90caf9';
-                    ctx.fillRect(400, 200, 150, 100);
-                    ctx.fillStyle = '#1565c0';
-                    ctx.font = '14px sans-serif';
-                    ctx.fillText('LAGO', 460, 260);
-                }
-            },
-            {
-                label: 'Av. Central',
-                draw: () => {
-                    ctx.fillStyle = '#795548';
-                    ctx.fillRect(250, 0, 8, h);
-                    ctx.fillStyle = '#5d4037';
-                    ctx.font = '12px sans-serif';
-                    ctx.fillText('Av. Central', 180, 20);
-                }
-            },
-            {
-                label: 'Calle 1',
-                draw: () => {
-                    ctx.fillStyle = '#795548';
-                    ctx.fillRect(0, 200, w, 6);
-                    ctx.fillStyle = '#5d4037';
-                    ctx.font = '12px sans-serif';
-                    ctx.fillText('Calle 1', 20, 195);
-                }
-            },
-            {
-                label: 'Edificio A',
-                draw: () => {
-                    ctx.fillStyle = '#ffcc80';
-                    ctx.fillRect(300, 50, 80, 60);
-                    ctx.fillStyle = '#e65100';
-                    ctx.font = '10px sans-serif';
+                    // Calle central
+                    ctx.fillStyle = '#000000';
+                    ctx.fillRect(295, 0, 10, h);
+
+                    // Nombre de calle
+                    ctx.save();
+                    ctx.translate(300, 300);
+                    ctx.rotate(Math.PI / 2);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 9px sans-serif';
                     ctx.textAlign = 'center';
-                    ctx.fillText('Edificio A', 340, 85);
+                    ctx.fillText('AVENIDA CENTRAL', 0, 3);
+                    ctx.restore();
+                }
+            },
+            {
+                label: 'Calles del lado izquierdo',
+                draw: () => {
+                    ctx.fillStyle = '#4f4f4f';
+                    ctx.fillRect(0, 190, 295, 15);
+                    ctx.fillRect(0, 395, 295, 15);
+
+                    // Nombres de calles
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 9px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('CALLE NORTE', 147, 201);
+                    ctx.fillText('CALLE SUR', 147, 406);
                     ctx.textAlign = 'left';
                 }
             },
             {
-                label: 'Museo',
+                label: 'Zona Recreativa Oeste y Lago',
                 draw: () => {
-                    ctx.fillStyle = '#ce93d8';
-                    ctx.fillRect(350, 300, 70, 70);
-                    ctx.fillStyle = '#6a1b9a';
-                    ctx.font = '10px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('Museo', 385, 340);
-                    ctx.textAlign = 'left';
-                }
-            },
-            {
-                label: 'Rectángulo (Zona Restringida)',
-                draw: () => {
-                    ctx.strokeStyle = '#d32f2f';
-                    ctx.lineWidth = 3;
-                    ctx.strokeRect(420, 50, 120, 80);
-                    ctx.fillStyle = '#d32f2f';
-                    ctx.font = '11px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('Zona Restringida', 480, 100);
-                    ctx.textAlign = 'left';
-                }
-            },
-            {
-                label: 'Línea de límite',
-                draw: () => {
-                    ctx.strokeStyle = '#1976d2';
-                    ctx.lineWidth = 3;
+                    // Zona Recreativa Oeste
+                    ctx.fillStyle = '#abebc6';
+                    ctx.fillRect(10, 10, 275, 170);
+                    ctx.fillStyle = '#196f3d';
+                    ctx.font = 'bold 11px sans-serif';
+                    ctx.fillText('ZONA RECREATIVA', 200, 160);
+
+                    // Lago Artificial
+                    ctx.fillStyle = '#5dade2';
                     ctx.beginPath();
-                    ctx.moveTo(50, 320);
-                    ctx.lineTo(250, 350);
+                    ctx.arc(110, 95, 60, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#1b4f72';
+                    ctx.font = 'bold 12px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('LAGO', 110, 90);
+                    ctx.fillText('ARTIFICIAL', 110, 105);
+                    ctx.textAlign = 'left';
+                }
+            },
+            {
+                label: 'Zona Recreativa Este (Nueva)',
+                draw: () => {
+                    // Zona Recreativa Este (Recuadro que va debajo de la diagonal superior)
+                    ctx.fillStyle = '#abebc6';
+                    ctx.fillRect(325, 70, 255, 185);
+                    ctx.fillStyle = '#196f3d';
+                    ctx.font = 'bold 11px sans-serif';
+                    ctx.fillText('ZONA RECREATIVA', 345, 230);
+                }
+            },
+            {
+                label: 'Zona Comercial',
+                draw: () => {
+                    ctx.fillStyle = '#9fa8da';
+                    ctx.fillRect(10, 215, 275, 170);
+                    ctx.fillStyle = '#1a237e';
+                    ctx.font = 'bold 12px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('ZONA COMERCIAL', 147, 305);
+                    ctx.textAlign = 'left';
+                }
+            },
+            {
+                label: 'Parque Nacional',
+                draw: () => {
+                    ctx.fillStyle = '#abebc6';
+                    ctx.fillRect(10, 420, 275, 170);
+                    ctx.fillStyle = '#196f3d';
+                    ctx.font = 'bold 12px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('PARQUE NACIONAL', 147, 510);
+                    ctx.textAlign = 'left';
+                }
+            },
+            {
+                label: 'Calle Diagonal Superior (Por encima de Zona Recreativa)',
+                draw: () => {
+                    // Se dibuja aquí para que quede encima del recuadro verde recreativo
+                    ctx.strokeStyle = '#4f4f4f';
+                    ctx.lineWidth = 12;
+                    ctx.beginPath();
+                    ctx.moveTo(300, 90);
+                    ctx.lineTo(600, 190);
                     ctx.stroke();
-                    ctx.fillStyle = '#1976d2';
-                    ctx.font = '11px sans-serif';
-                    ctx.fillText('Línea de límite', 60, 315);
+
+                    // Nombre de calle diagonal
+                    ctx.save();
+                    ctx.translate(450, 140);
+                    ctx.rotate(0.32175);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 8px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('AV. DIAGONAL NORTE', 0, 3);
+                    ctx.restore();
                 }
             },
             {
-                label: 'Círculo (Zona de seguridad)',
+                label: 'Calles del lado derecho',
                 draw: () => {
-                    ctx.strokeStyle = '#f57c00';
-                    ctx.lineWidth = 3;
-                    ctx.beginPath();
-                    ctx.arc(550, 100, 40, 0, Math.PI * 2);
-                    ctx.stroke();
-                    ctx.fillStyle = '#f57c00';
-                    ctx.font = '11px sans-serif';
+                    ctx.fillStyle = '#4f4f4f';
+                    ctx.fillRect(305, 270, 295, 12);
+                    ctx.fillRect(305, 375, 295, 12);
+                    ctx.fillRect(305, 480, 295, 12);
+                    ctx.fillRect(445, 270, 12, 222);
+
+                    // Nombre de calle vertical
+                    ctx.save();
+                    ctx.translate(451, 380);
+                    ctx.rotate(Math.PI / 2);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 7px sans-serif';
                     ctx.textAlign = 'center';
-                    ctx.fillText('Zona de seguridad', 550, 105);
+                    ctx.fillText('PASAJE RESIDENCIAL', 0, 3);
+                    ctx.restore();
+                    // Nombres de calles horizontales (mostrado solo una vez a la derecha)
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '7px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Calle de la Paz', 520, 279);
+                    ctx.fillText('Calle de la Unión', 520, 384);
+                    ctx.fillText('Calle de la Libertad', 520, 489);
                     ctx.textAlign = 'left';
                 }
             },
             {
-                label: '📍 Tu ubicación',
+                label: 'Zonas Residenciales',
                 draw: () => {
-                    const px = { x: w / 2, y: h / 2 };
+                    ctx.fillStyle = '#fff9c4';
+                    ctx.fillRect(315, 290, 120, 75);
+                    ctx.fillRect(467, 290, 120, 75);
+                    ctx.fillRect(315, 395, 120, 75);
+                    ctx.fillRect(467, 395, 120, 75);
+                    ctx.fillStyle = '#7f8c8d';
+                    ctx.font = '9px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('ZONA RESIDENCIAL', 375, 332);
+                    ctx.fillText('ZONA RESIDENCIAL', 527, 332);
+                    ctx.fillText('ZONA RESIDENCIAL', 375, 437);
+                    ctx.fillText('ZONA RESIDENCIAL', 527, 437);
+                    ctx.textAlign = 'left';
+                }
+            },
+            {
+                label: 'Calle Diagonal Inferior',
+                draw: () => {
+                    ctx.strokeStyle = '#4f4f4f';
+                    ctx.lineWidth = 12;
                     ctx.beginPath();
-                    ctx.arc(px.x, px.y, 10, 0, Math.PI * 2);
+                    ctx.moveTo(450, 490);
+                    ctx.lineTo(515, 600);
+                    ctx.stroke();
+
+                    // Nombre de diagonal inferior
+                    ctx.save();
+                    ctx.translate(482, 545);
+                    ctx.rotate(1.037);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 8px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('PASEO DEL SUR', 0, 3);
+                    ctx.restore();
+                }
+            },
+            {
+                label: 'Tu ubicacion',
+                draw: () => {
+                    let px = { x: w / 2, y: h / 2 };
+                    let latStr = '';
+                    let lngStr = '';
+                    if (this.location) {
+                        const lat = this.location.lat;
+                        const lng = this.location.lng;
+                        latStr = lat.toFixed(6);
+                        lngStr = lng.toFixed(6);
+                        if (lat >= 13.0 && lat <= 14.6 && lng >= -90.5 && lng <= -87.4) {
+                            px.x = ((lng - (-90.5)) / (-87.4 - (-90.5))) * w;
+                            px.y = (1 - (lat - 13.0) / (14.6 - 13.0)) * h;
+                        } else {
+                            const latFract = Math.abs(lat) % 1;
+                            const lngFract = Math.abs(lng) % 1;
+                            px.x = 80 + latFract * (w - 160);
+                            px.y = 80 + lngFract * (h - 160);
+                        }
+                        px.x = Math.max(60, Math.min(w - 60, px.x));
+                        px.y = Math.max(60, Math.min(h - 60, px.y));
+                    }
+                    ctx.beginPath();
+                    ctx.arc(px.x, px.y, 8, 0, Math.PI * 2);
                     ctx.fillStyle = '#e53935';
                     ctx.fill();
                     ctx.strokeStyle = '#fff';
-                    ctx.lineWidth = 3;
+                    ctx.lineWidth = 2;
                     ctx.stroke();
-                    ctx.font = 'bold 14px sans-serif';
+                    ctx.beginPath();
+                    ctx.arc(px.x, px.y, 16, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(229, 57, 53, 0.4)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    ctx.fillStyle = '#e53935';
+                    ctx.font = 'bold 12px sans-serif';
                     ctx.textAlign = 'center';
-                    ctx.fillText('📍', px.x, px.y - 18);
+                    ctx.fillText('Tu Ubicacion', px.x, px.y - 22);
+                    if (latStr && lngStr) {
+                        ctx.font = '9px sans-serif';
+                        ctx.fillStyle = '#37474f';
+                        ctx.fillText(`(${latStr}, ${lngStr})`, px.x, px.y - 10);
+                    }
                     ctx.textAlign = 'left';
                 }
             }
         ];
-
         let i = 0;
-        const interval = setInterval(() => {
+        this.mapInterval = setInterval(() => {
             if (i >= steps.length) {
-                clearInterval(interval);
+                clearInterval(this.mapInterval);
+                this.mapInterval = null;
                 status.textContent = 'Mapa dibujado correctamente con tu ubicación marcada.';
                 status.classList.remove('text-muted');
                 status.classList.add('text-success', 'fw-bold');
@@ -393,99 +504,182 @@ const App = {
             i++;
         }, 200);
     },
-
     drawMapInstant() {
         const canvas = document.getElementById('mapCanvas');
         const ctx = canvas.getContext('2d');
         const w = canvas.width;
         const h = canvas.height;
         const status = document.getElementById('canvasStatus');
-
         ctx.clearRect(0, 0, w, h);
-        ctx.fillStyle = '#e8f5e9';
+        ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, w, h);
+        // Avenida Principal
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(295, 0, 10, h);
 
-        ctx.fillStyle = '#a5d6a7';
-        ctx.fillRect(50, 50, 200, 150);
-        ctx.fillStyle = '#2e7d32';
-        ctx.font = '14px sans-serif';
-        ctx.fillText('PARQUE CENTRAL', 90, 140);
-
-        ctx.fillStyle = '#90caf9';
-        ctx.fillRect(400, 200, 150, 100);
-        ctx.fillStyle = '#1565c0';
-        ctx.font = '14px sans-serif';
-        ctx.fillText('LAGO', 460, 260);
-
-        ctx.fillStyle = '#795548';
-        ctx.fillRect(250, 0, 8, h);
-        ctx.fillStyle = '#5d4037';
-        ctx.font = '12px sans-serif';
-        ctx.fillText('Av. Central', 180, 20);
-
-        ctx.fillStyle = '#795548';
-        ctx.fillRect(0, 200, w, 6);
-        ctx.fillStyle = '#5d4037';
-        ctx.font = '12px sans-serif';
-        ctx.fillText('Calle 1', 20, 195);
-
-        ctx.fillStyle = '#ffcc80';
-        ctx.fillRect(300, 50, 80, 60);
-        ctx.fillStyle = '#e65100';
-        ctx.font = '10px sans-serif';
+        ctx.save();
+        ctx.translate(300, 300);
+        ctx.rotate(Math.PI / 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 9px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('Edificio A', 340, 85);
-        ctx.textAlign = 'left';
+        ctx.fillText('AVENIDA CENTRAL', 0, 3);
+        ctx.restore();
+        // Calles rectas
+        ctx.fillStyle = '#4f4f4f';
+        ctx.fillRect(305, 270, 295, 12);
+        ctx.fillRect(305, 375, 295, 12);
+        ctx.fillRect(305, 480, 295, 12);
+        ctx.fillRect(445, 270, 12, 222);
+        ctx.fillRect(0, 190, 295, 15);
+        ctx.fillRect(0, 395, 295, 15);
 
-        ctx.fillStyle = '#ce93d8';
-        ctx.fillRect(350, 300, 70, 70);
-        ctx.fillStyle = '#6a1b9a';
-        ctx.font = '10px sans-serif';
+        // Nombres calles rectas izquierdas
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 9px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('Museo', 385, 340);
-        ctx.textAlign = 'left';
-
-        ctx.strokeStyle = '#d32f2f';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(420, 50, 120, 80);
-        ctx.fillStyle = '#d32f2f';
-        ctx.font = '11px sans-serif';
+        ctx.fillText('CALLE NORTE', 147, 201);
+        ctx.fillText('CALLE SUR', 147, 406);
+        // Nombres calles rectas derechas
+        ctx.save();
+        ctx.translate(451, 380);
+        ctx.rotate(Math.PI / 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 7px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('Zona Restringida', 480, 100);
+        ctx.fillText('PASAJE RESIDENCIAL', 0, 3);
+        ctx.restore();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '7px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Calle de la Paz', 520, 279);
+        ctx.fillText('Calle de la Unión', 520, 384);
+        ctx.fillText('Calle de la Libertad', 520, 489);
         ctx.textAlign = 'left';
+        // Zona Recreativa Oeste y Lago
+        ctx.fillStyle = '#abebc6';
+        ctx.fillRect(10, 10, 275, 170);
+        ctx.fillStyle = '#196f3d';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.fillText('ZONA RECREATIVA', 200, 160);
 
-        ctx.strokeStyle = '#1976d2';
-        ctx.lineWidth = 3;
+        ctx.fillStyle = '#5dade2';
         ctx.beginPath();
-        ctx.moveTo(50, 320);
-        ctx.lineTo(250, 350);
+        ctx.arc(110, 95, 60, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#1b4f72';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('LAGO', 110, 90);
+        ctx.fillText('ARTIFICIAL', 110, 105);
+        ctx.textAlign = 'left';
+        // Zona Recreativa Este (Nueva)
+        ctx.fillStyle = '#abebc6';
+        ctx.fillRect(325, 70, 255, 185);
+        ctx.fillStyle = '#196f3d';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.fillText('ZONA RECREATIVA', 345, 230);
+        // Zona Comercial
+        ctx.fillStyle = '#9fa8da';
+        ctx.fillRect(10, 215, 275, 170);
+        ctx.fillStyle = '#1a237e';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('ZONA COMERCIAL', 147, 305);
+        ctx.textAlign = 'left';
+        // Parque Nacional
+        ctx.fillStyle = '#abebc6';
+        ctx.fillRect(10, 420, 275, 170);
+        ctx.fillStyle = '#196f3d';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('PARQUE NACIONAL', 147, 510);
+        ctx.textAlign = 'left';
+        // Calle
+        ctx.strokeStyle = '#4f4f4f';
+        ctx.lineWidth = 12;
+        ctx.beginPath();
+        ctx.moveTo(300, 90);
+        ctx.lineTo(600, 190);
+        ctx.moveTo(450, 490);
+        ctx.lineTo(515, 600);
         ctx.stroke();
-        ctx.fillStyle = '#1976d2';
-        ctx.font = '11px sans-serif';
-        ctx.fillText('Línea de límite', 60, 315);
-
-        ctx.strokeStyle = '#f57c00';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(550, 100, 40, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.fillStyle = '#f57c00';
-        ctx.font = '11px sans-serif';
+        // Nombre diagonal superior
+        ctx.save();
+        ctx.translate(450, 140);
+        ctx.rotate(0.32175);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 8px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('Zona de seguridad', 550, 105);
+        ctx.fillText('AV. DIAGONAL NORTE', 0, 3);
+        ctx.restore();
+        // Nombre diagonal inferior
+        ctx.save();
+        ctx.translate(482, 545);
+        ctx.rotate(1.037);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 8px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('PASEO DEL SUR', 0, 3);
+        ctx.restore();
+        // Bloques Residenciales
+        ctx.fillStyle = '#fff9c4';
+        ctx.fillRect(315, 290, 120, 75);
+        ctx.fillRect(467, 290, 120, 75);
+        ctx.fillRect(315, 395, 120, 75);
+        ctx.fillRect(467, 395, 120, 75);
+        ctx.fillStyle = '#7f8c8d';
+        ctx.font = '9px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('ZONA RESIDENCIAL', 375, 332);
+        ctx.fillText('ZONA RESIDENCIAL', 527, 332);
+        ctx.fillText('ZONA RESIDENCIAL', 375, 437);
+        ctx.fillText('ZONA RESIDENCIAL', 527, 437);
         ctx.textAlign = 'left';
-
-        const px = { x: w / 2, y: h / 2 };
+        // ubicacion
+        let px = { x: w / 2, y: h / 2 };
+        let latStr = '';
+        let lngStr = '';
+        if (this.location) {
+            const lat = this.location.lat;
+            const lng = this.location.lng;
+            latStr = lat.toFixed(6);
+            lngStr = lng.toFixed(6);
+            if (lat >= 13.0 && lat <= 14.6 && lng >= -90.5 && lng <= -87.4) {
+                px.x = ((lng - (-90.5)) / (-87.4 - (-90.5))) * w;
+                px.y = (1 - (lat - 13.0) / (14.6 - 13.0)) * h;
+            } else {
+                const latFract = Math.abs(lat) % 1;
+                const lngFract = Math.abs(lng) % 1;
+                px.x = 80 + latFract * (w - 160);
+                px.y = 80 + lngFract * (h - 160);
+            }
+            px.x = Math.max(60, Math.min(w - 60, px.x));
+            px.y = Math.max(60, Math.min(h - 60, px.y));
+        }
         ctx.beginPath();
-        ctx.arc(px.x, px.y, 10, 0, Math.PI * 2);
+        ctx.arc(px.x, px.y, 8, 0, Math.PI * 2);
         ctx.fillStyle = '#e53935';
         ctx.fill();
         ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 2;
         ctx.stroke();
-        ctx.font = 'bold 14px sans-serif';
+
+        ctx.beginPath();
+        ctx.arc(px.x, px.y, 16, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(229, 57, 53, 0.4)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#e53935';
+        ctx.font = 'bold 12px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('📍', px.x, px.y - 18);
+        ctx.fillText('Tu Ubicacion', px.x, px.y - 22);
+        if (latStr && lngStr) {
+            ctx.font = '9px sans-serif';
+            ctx.fillStyle = '#37474f';
+            ctx.fillText(`(${latStr}, ${lngStr})`, px.x, px.y - 10);
+        }
         ctx.textAlign = 'left';
 
         status.textContent = 'Mapa (nivel completado)';
@@ -493,7 +687,7 @@ const App = {
         status.classList.add('text-success', 'fw-bold');
     },
 
-    // ============ LEVEL 3 ============
+    // LEVEL 3
     async startCamera() {
         const startBtn = document.getElementById('startCameraBtn');
         startBtn.disabled = true;
@@ -698,7 +892,7 @@ const App = {
         this.worker.postMessage({ type: 'level4', data });
     },
 
-    // ============ LEVEL 5 ============
+    // LEVEL 5
     processLevel5() {
         const btn = document.getElementById('processLevel5Btn');
         btn.disabled = true;
@@ -734,6 +928,8 @@ const App = {
                 data.push({ temperature: temp, humidity: hum, pressure: pres });
             }
 
+            this.level5Data = data;
+
             this.worker = new Worker('worker.js');
 
             this.worker.onmessage = (e) => {
@@ -743,12 +939,29 @@ const App = {
                     progressBar.textContent = msg.progress + '%';
                 } else if (msg.type === 'result') {
                     const s = msg.stats;
-                    document.getElementById('avgTemp5').textContent = s.avgTemp + '°C';
+                    document.getElementById('avgTemp5').textContent = s.avgTemp + 'C';
                     document.getElementById('avgHum5').textContent = s.avgHum + '%';
                     document.getElementById('avgPres5').textContent = s.avgPres + ' hPa';
+                    document.getElementById('medianTemp5').textContent = s.medianTemp + 'C';
+                    document.getElementById('maxHum5').textContent = s.maxHum + '%';
+                    document.getElementById('maxPres5').textContent = s.maxPres + ' hPa';
+                    document.getElementById('stdDevTemp5').textContent = s.stdDevTemp;
+                    document.getElementById('stdDevHum5').textContent = s.stdDevHum;
+                    document.getElementById('stdDevPres5').textContent = s.stdDevPres;
                     document.getElementById('topTemps5').textContent = s.top10Temps.join(', ');
                     document.getElementById('topPress5').textContent = s.top10Press.join(', ');
                     document.getElementById('validCount5').textContent = s.validCount.toLocaleString();
+                    document.getElementById('qualityValid5').textContent = s.validCount.toLocaleString();
+                    document.getElementById('qualityInvalid5').textContent = (s.totalCount - s.validCount).toLocaleString();
+                    document.getElementById('qualityBadTemp5').textContent = s.invalidTemp.toLocaleString();
+                    document.getElementById('qualityBadHum5').textContent = s.invalidHum.toLocaleString();
+                    document.getElementById('qualityBadPres5').textContent = s.invalidPres.toLocaleString();
+                    document.getElementById('qualityPct5').textContent = (s.validCount / s.totalCount * 100).toFixed(1) + '%';
+
+                    this.renderScatterPlot(s.scatterSample);
+                    this.renderHistogram(s.tempDistribution);
+                    this.renderSampleTable(s.sampleRecords);
+
                     document.getElementById('statsContainer5').classList.remove('d-none');
                     progressBar.classList.remove('progress-bar-animated');
                     progressBar.style.width = '100%';
@@ -764,7 +977,143 @@ const App = {
         }, 100);
     },
 
-    // ============ EXPORT JSON ============
+    renderScatterPlot(samples) {
+        const canvas = document.getElementById('scatterCanvas5');
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width, h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+
+        ctx.fillStyle = '#f8f9fa';
+        ctx.fillRect(0, 0, w, h);
+
+        let minT = Infinity, maxT = -Infinity;
+        let minH = Infinity, maxH = -Infinity;
+        for (let i = 0; i < samples.length; i++) {
+            const s = samples[i];
+            if (s.t < minT) minT = s.t;
+            if (s.t > maxT) maxT = s.t;
+            if (s.h < minH) minH = s.h;
+            if (s.h > maxH) maxH = s.h;
+        }
+
+        const pad = 45;
+        const plotW = w - pad * 2;
+        const plotH = h - pad * 2;
+
+        ctx.strokeStyle = '#666';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(pad, pad);
+        ctx.lineTo(pad, h - pad);
+        ctx.lineTo(w - pad, h - pad);
+        ctx.stroke();
+
+        for (let i = 0; i < samples.length; i++) {
+            const s = samples[i];
+            const x = pad + ((s.t - minT) / (maxT - minT || 1)) * plotW;
+            const y = pad + plotH - ((s.h - minH) / (maxH - minH || 1)) * plotH;
+
+            ctx.beginPath();
+            ctx.arc(x, y, 2, 0, Math.PI * 2);
+            ctx.fillStyle = s.v ? '#28a745' : '#dc3545';
+            ctx.fill();
+        }
+
+        ctx.fillStyle = '#666';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Temperatura', w / 2, h - 5);
+        ctx.save();
+        ctx.translate(12, h / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText('Humedad', 0, 0);
+        ctx.restore();
+
+        ctx.font = '9px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(minT.toFixed(1), pad - 4, h - pad + 3);
+        ctx.fillText(maxT.toFixed(1), pad + plotW, h - pad + 3);
+        ctx.textAlign = 'center';
+        ctx.fillText(maxH.toFixed(1), pad - 4, pad + 8);
+        ctx.fillText(minH.toFixed(1), pad - 4, h - pad + 3);
+
+        ctx.fillStyle = '#28a745';
+        ctx.textAlign = 'left';
+        ctx.font = '9px sans-serif';
+        ctx.fillRect(pad, h - pad + 8, 8, 8);
+        ctx.fillText(' Validos', pad + 10, h - pad + 16);
+        ctx.fillStyle = '#dc3545';
+        ctx.fillRect(pad + 70, h - pad + 8, 8, 8);
+        ctx.fillText(' Invalidos', pad + 80, h - pad + 16);
+    },
+
+    renderHistogram(dist) {
+        const canvas = document.getElementById('histogramCanvas5');
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width, h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+
+        ctx.fillStyle = '#f8f9fa';
+        ctx.fillRect(0, 0, w, h);
+
+        const labels = ['<0', '0-10', '10-15', '15-20', '20-25', '25-30', '30-35', '35+'];
+        const colors = ['#dc3545', '#fd7e14', '#ffc107', '#28a745', '#20c997', '#17a2b8', '#007bff', '#6f42c1'];
+        const barCount = dist.length;
+        const pad = 35;
+        const plotW = w - pad * 2;
+        const plotH = h - pad * 2;
+
+        let maxVal = 0;
+        for (let i = 0; i < dist.length; i++) {
+            if (dist[i] > maxVal) maxVal = dist[i];
+        }
+
+        const barW = Math.floor(plotW / barCount) - 4;
+
+        ctx.strokeStyle = '#666';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(pad, pad);
+        ctx.lineTo(pad, h - pad);
+        ctx.lineTo(w - pad, h - pad);
+        ctx.stroke();
+
+        for (let i = 0; i < barCount; i++) {
+            const barH = (dist[i] / maxVal) * plotH;
+            const x = pad + i * (plotW / barCount) + 2;
+            const y = h - pad - barH;
+
+            ctx.fillStyle = colors[i];
+            ctx.fillRect(x, y, barW, barH);
+
+            ctx.fillStyle = '#666';
+            ctx.font = '8px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(labels[i], x + barW / 2, h - pad + 12);
+
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 8px sans-serif';
+            ctx.fillText(dist[i].toLocaleString(), x + barW / 2, y - 4);
+        }
+
+        ctx.fillStyle = '#666';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Rango de Temperatura (C)', w / 2, h - 2);
+    },
+
+    renderSampleTable(records) {
+        const tbody = document.querySelector('#sampleTable5 tbody');
+        tbody.innerHTML = '';
+        for (let i = 0; i < records.length; i++) {
+            const r = records[i];
+            const tr = document.createElement('tr');
+            tr.innerHTML = '<td>' + (i + 1) + '</td><td>' + r.t + ' C</td><td>' + r.h + '%</td><td>' + r.p + ' hPa</td>';
+            tbody.appendChild(tr);
+        }
+    },
+
+    // EXPORT
     exportJSON() {
         if (!this.level5Stats) {
             this.showAlert('No hay datos para exportar.', 'warning');
@@ -781,12 +1130,31 @@ const App = {
         this.showAlert('JSON exportado correctamente.', 'success');
     },
 
+    exportData() {
+        if (!this.level5Data) {
+            this.showAlert('No hay datos para exportar.', 'warning');
+            return;
+        }
+        const validos = this.level5Data.filter(function(d) {
+            return d.temperature >= 0 && d.humidity >= 0 && d.pressure >= 0;
+        });
+        const jsonStr = JSON.stringify(validos, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'datos_validos_250k.json';
+        a.click();
+        URL.revokeObjectURL(url);
+        this.showAlert(validos.length.toLocaleString() + ' registros exportados.', 'success');
+    },
+
     showCompletion() {
         const main = document.querySelector('main');
         main.innerHTML = `
             <div class="card shadow text-center">
                 <div class="card-body py-5">
-                    <div class="display-1 text-success mb-3">🎉</div>
+                    <div class="display-1 text-success mb-3"><i class="bi bi-check2-circle"></i></div>
                     <h2 class="mb-3">¡Felicidades!</h2>
                     <p class="lead">Has completado los 5 niveles y recuperado el acceso al sistema.</p>
                     <div class="row justify-content-center mt-4">
@@ -794,28 +1162,28 @@ const App = {
                             <ul class="list-group">
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     Nivel 1: El Guardián de la Ubicación
-                                    <span class="badge bg-success rounded-pill">✓</span>
+                                    <span class="badge bg-success rounded-pill"><i class="bi bi-check2"></i></span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    Nivel 2: El Cartógrafo Perdido
-                                    <span class="badge bg-success rounded-pill">✓</span>
+                                    Nivel 2: El Cartografo Perdido
+                                    <span class="badge bg-success rounded-pill"><i class="bi bi-check2"></i></span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     Nivel 3: La Evidencia del Explorador
-                                    <span class="badge bg-success rounded-pill">✓</span>
+                                    <span class="badge bg-success rounded-pill"><i class="bi bi-check2"></i></span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    Nivel 4: El Núcleo de Procesamiento
-                                    <span class="badge bg-success rounded-pill">✓</span>
+                                    Nivel 4: El Nucleo de Procesamiento
+                                    <span class="badge bg-success rounded-pill"><i class="bi bi-check2"></i></span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    Nivel 5: El Portal Cuántico
-                                    <span class="badge bg-success rounded-pill">✓</span>
+                                    Nivel 5: El Portal Cuantico
+                                    <span class="badge bg-success rounded-pill"><i class="bi bi-check2"></i></span>
                                 </li>
                             </ul>
                         </div>
                     </div>
-                    <button class="btn btn-primary btn-lg mt-4" onclick="location.reload()">
+                    <button class="btn btn-primary btn-lg mt-4" onclick="localStorage.clear(); location.reload()">
                         <i class="bi bi-arrow-counterclockwise"></i> Jugar de Nuevo
                     </button>
                 </div>

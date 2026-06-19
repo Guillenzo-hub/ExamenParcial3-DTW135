@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
     <header class="bg-dark text-white py-3">
@@ -68,7 +70,7 @@
                 <div class="card-body text-center">
                     <p class="lead">Dibuja un mapa simplificado y marca tu posición en Canvas.</p>
                     <div class="d-flex justify-content-center mb-3">
-                        <canvas id="mapCanvas" width="600" height="400" class="border border-2 rounded"></canvas>
+                        <canvas id="mapCanvas" width="600" height="600" class="border border-2 rounded"></canvas>
                     </div>
                     <div id="canvasStatus" class="text-muted small">Esperando que dibujes el mapa...</div>
                     <button id="drawMapBtn" class="btn btn-success mt-2">
@@ -101,7 +103,9 @@
                         </div>
                         <div class="col-md-6">
                             <canvas id="photoCanvas" class="w-100 border rounded d-none"></canvas>
-                            <div id="photoPlaceholder" class="border rounded d-flex align-items-center justify-content-center bg-light" style="height: 200px;">
+                            <div id="photoPlaceholder"
+                                class="border rounded d-flex align-items-center justify-content-center bg-light"
+                                style="height: 200px;">
                                 <span class="text-muted">Foto capturada</span>
                             </div>
                         </div>
@@ -144,7 +148,8 @@
                     <div id="progressContainer4" class="d-none mt-3">
                         <p class="mb-1">Procesando datos...</p>
                         <div class="progress" style="height: 25px;">
-                            <div id="progressBar4" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%;">0%</div>
+                            <div id="progressBar4" class="progress-bar progress-bar-striped progress-bar-animated"
+                                style="width: 0%;">0%</div>
                         </div>
                     </div>
                     <div id="statsContainer4" class="d-none mt-3">
@@ -200,36 +205,105 @@
                     <div id="progressContainer5" class="d-none mt-3">
                         <p class="mb-1">Procesando registros...</p>
                         <div class="progress" style="height: 25px;">
-                            <div id="progressBar5" class="progress-bar progress-bar-striped progress-bar-animated bg-info" style="width: 0%;">0%</div>
+                            <div id="progressBar5"
+                                class="progress-bar progress-bar-striped progress-bar-animated bg-info"
+                                style="width: 0%;">0%</div>
                         </div>
                     </div>
                     <div id="statsContainer5" class="d-none mt-3">
-                        <div class="row justify-content-center">
-                            <div class="col-md-10">
-                                <div class="card border-info">
-                                    <div class="card-header bg-info text-white">
-                                        <h3 class="h6 mb-0">Estadísticas del Portal Cuántico</h3>
+
+                        <div class="card border-info mb-3">
+                            <div class="card-header bg-info text-white">
+                                <h3 class="h6 mb-0">Estadisticas del Portal Cuantico</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-4"><strong>Temperatura</strong></div>
+                                    <div class="col-4"><strong>Humedad</strong></div>
+                                    <div class="col-4"><strong>Presion</strong></div>
+                                    <div class="col-4">Prom: <span id="avgTemp5"></span></div>
+                                    <div class="col-4">Prom: <span id="avgHum5"></span></div>
+                                    <div class="col-4">Prom: <span id="avgPres5"></span></div>
+                                    <div class="col-4">Mediana: <span id="medianTemp5"></span></div>
+                                    <div class="col-4">Max: <span id="maxHum5"></span></div>
+                                    <div class="col-4">Max: <span id="maxPres5"></span></div>
+                                    <div class="col-4">Std Dev: <span id="stdDevTemp5"></span></div>
+                                    <div class="col-4">Std Dev: <span id="stdDevHum5"></span></div>
+                                    <div class="col-4">Std Dev: <span id="stdDevPres5"></span></div>
+                                </div>
+                                <hr>
+                                <p><strong>Top 10 Temperaturas:</strong> <span id="topTemps5"></span></p>
+                                <p><strong>Top 10 Presiones:</strong> <span id="topPress5"></span></p>
+                                <p><strong>Registros Validos Procesados:</strong> <span id="validCount5"></span></p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header bg-secondary text-white">
+                                        <h4 class="h6 mb-0">Temperatura vs Humedad</h4>
                                     </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-4"><strong>Temperatura</strong></div>
-                                            <div class="col-4"><strong>Humedad</strong></div>
-                                            <div class="col-4"><strong>Presión</strong></div>
-                                            <div class="col-4">Prom: <span id="avgTemp5"></span></div>
-                                            <div class="col-4">Prom: <span id="avgHum5"></span></div>
-                                            <div class="col-4">Prom: <span id="avgPres5"></span></div>
-                                        </div>
-                                        <hr>
-                                        <p><strong>Top 10 Temperaturas:</strong> <span id="topTemps5"></span></p>
-                                        <p><strong>Top 10 Presiones:</strong> <span id="topPress5"></span></p>
-                                        <p><strong>Registros Válidos Procesados:</strong> <span id="validCount5"></span></p>
-                                        <button id="exportJsonBtn" class="btn btn-success mt-2">
-                                            <i class="bi bi-download"></i> Exportar JSON
-                                        </button>
+                                    <div class="card-body p-2 text-center">
+                                        <canvas id="scatterCanvas5" width="400" height="300" class="border rounded"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header bg-secondary text-white">
+                                        <h4 class="h6 mb-0">Distribucion de Temperatura</h4>
+                                    </div>
+                                    <div class="card-body p-2 text-center">
+                                        <canvas id="histogramCanvas5" width="400" height="300" class="border rounded"></canvas>
                                     </div>
                                 </div>
                             </div>
                         </div>
+
+                        <div class="card border-warning mb-3">
+                            <div class="card-header bg-warning text-dark">
+                                <h3 class="h6 mb-0">Reporte de Calidad</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-6">Registros Validos: <span id="qualityValid5"></span></div>
+                                    <div class="col-6">Registros Invalidos: <span id="qualityInvalid5"></span></div>
+                                    <div class="col-6">Temperaturas Negativas: <span id="qualityBadTemp5"></span></div>
+                                    <div class="col-6">Humedades Negativas: <span id="qualityBadHum5"></span></div>
+                                    <div class="col-6">Presiones Negativas: <span id="qualityBadPres5"></span></div>
+                                    <div class="col-6">Validez: <span id="qualityPct5"></span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card border-info mb-3">
+                            <div class="card-header bg-info text-white">
+                                <h3 class="h6 mb-0">Muestra de Datos Validos</h3>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive" style="max-height: 220px;">
+                                    <table class="table table-sm table-striped mb-0" id="sampleTable5">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Temperatura</th>
+                                                <th>Humedad</th>
+                                                <th>Presion</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button id="exportJsonBtn" class="btn btn-success mt-2">
+                            <i class="bi bi-download"></i> Exportar Estadisticas
+                        </button>
+                        <button id="exportDataBtn" class="btn btn-outline-success mt-2">
+                            <i class="bi bi-table"></i> Exportar Datos Validos
+                        </button>
                     </div>
                 </div>
                 <div class="card-footer text-end">
@@ -252,4 +326,5 @@
     <script src="app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
