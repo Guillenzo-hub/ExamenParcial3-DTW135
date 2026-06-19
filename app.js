@@ -579,24 +579,29 @@ const App = {
     processLevel4() {
         const btn = document.getElementById('processLevel4Btn');
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Procesando...';
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Generando datos...';
 
         const progressContainer = document.getElementById('progressContainer4');
         const progressBar = document.getElementById('progressBar4');
+        const statsContainer = document.getElementById('statsContainer4');
         progressContainer.classList.remove('d-none');
+        statsContainer.classList.add('d-none');
+        progressBar.classList.remove('bg-success');
+        progressBar.classList.add('progress-bar-animated');
         progressBar.style.width = '0%';
         progressBar.textContent = '0%';
 
         const total = 20000;
-        const data = [];
-        for (let i = 0; i < total; i++) {
-            data.push({
-                temperature: 15 + Math.random() * 30,
-                humidity: 30 + Math.random() * 70
-            });
-        }
+        const data = Array.from({ length: total }, () => ({
+            temperature: 15 + Math.random() * 30,
+            humidity: 30 + Math.random() * 70
+        }));
 
+        if (this.worker) {
+            this.worker.terminate();
+        }
         this.worker = new Worker('worker.js');
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Procesando en Worker...';
 
         this.worker.onmessage = (e) => {
             const msg = e.data;
@@ -611,14 +616,26 @@ const App = {
                 document.getElementById('maxHum4').textContent = s.maxHum + '%';
                 document.getElementById('minTemp4').textContent = s.minTemp + '°C';
                 document.getElementById('minHum4').textContent = s.minHum + '%';
-                document.getElementById('statsContainer4').classList.remove('d-none');
+                statsContainer.classList.remove('d-none');
                 progressBar.classList.remove('progress-bar-animated');
                 progressBar.style.width = '100%';
                 progressBar.textContent = 'Completado';
                 progressBar.classList.add('bg-success');
                 btn.innerHTML = '<i class="bi bi-check-circle"></i> Procesado';
+                this.worker.terminate();
+                this.worker = null;
                 this.completeLevel(4);
             }
+        };
+
+        this.worker.onerror = (error) => {
+            console.error('Worker level 4 error:', error);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-gear-fill"></i> Reintentar Procesamiento';
+            progressBar.classList.remove('progress-bar-animated');
+            this.showAlert('No se pudieron procesar los datos del nivel 4.', 'danger');
+            this.worker.terminate();
+            this.worker = null;
         };
 
         this.worker.postMessage({ type: 'level4', data });
